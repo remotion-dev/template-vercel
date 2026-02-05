@@ -8,6 +8,7 @@ import {
 	VIDEO_HEIGHT,
 	VIDEO_WIDTH,
 } from "../../../../types/constants";
+import { VERSION } from "remotion";
 
 type SSEMessage =
 	| { type: "log"; stream: "stdout" | "stderr"; data: string }
@@ -143,7 +144,7 @@ export async function POST(req: Request) {
 
 			const installCmd = await sandbox.runCommand({
 				cmd: "pnpm",
-				args: ["install", "@remotion/renderer@latest"],
+				args: ["install", "@remotion/renderer@" + VERSION],
 				detached: true,
 			});
 
