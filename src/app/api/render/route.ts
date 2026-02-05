@@ -1,4 +1,5 @@
 import { put } from "@vercel/blob";
+import { waitUntil } from "@vercel/functions";
 import { Sandbox } from "@vercel/sandbox";
 import { RenderRequest } from "../../../../types/schema";
 import {
@@ -11,6 +12,27 @@ import {
 import { VERSION } from "remotion/version";
 import { readdir, readFile } from "fs/promises";
 import path from "path";
+
+const createDisposableSandbox = async (
+	options: Parameters<typeof Sandbox.create>[0],
+): Promise<Sandbox & AsyncDisposable> => {
+	const sandbox = await Sandbox.create(options);
+	return Object.assign(sandbox, {
+		[Symbol.asyncDispose]: async () => {
+			await sandbox.stop().catch(() => {});
+		},
+	});
+};
+
+const createDisposableWriter = (
+	writer: WritableStreamDefaultWriter<Uint8Array>,
+): WritableStreamDefaultWriter<Uint8Array> & AsyncDisposable => {
+	return Object.assign(writer, {
+		[Symbol.asyncDispose]: async () => {
+			await writer.close();
+		},
+	});
+};
 
 async function getRemotionBundleFiles(): Promise<
 	{ path: string; content: Buffer }[]
@@ -96,8 +118,6 @@ main();
 }
 
 export async function POST(req: Request) {
-	let sandbox: Sandbox | null = null;
-
 	const encoder = new TextEncoder();
 	const stream = new TransformStream();
 	const writer = stream.writable.getWriter();
@@ -107,17 +127,26 @@ export async function POST(req: Request) {
 	};
 
 	const runRender = async () => {
+		await using writerDisposable = {
+			[Symbol.asyncDispose]: async () => {
+				await writer.close();
+			},
+		};
+
+		// Suppress unused variable warning - disposal happens automatically
+		void writerDisposable;
+
+		const payload = await req.json();
+		const body = RenderRequest.parse(payload);
+
+		await send({ type: "phase", phase: "Creating sandbox..." });
+
+		await using sandbox = await createDisposableSandbox({
+			runtime: "node24",
+			timeout: 5 * 60 * 1000,
+		});
+
 		try {
-			const payload = await req.json();
-			const body = RenderRequest.parse(payload);
-
-			await send({ type: "phase", phase: "Creating sandbox..." });
-
-			sandbox = await Sandbox.create({
-				runtime: "node24",
-				timeout: 5 * 60 * 1000,
-			});
-
 			await send({ type: "phase", phase: "Copying Remotion bundle..." });
 
 			const bundleFiles = await getRemotionBundleFiles();
@@ -272,15 +301,10 @@ export async function POST(req: Request) {
 			});
 		} catch (err) {
 			await send({ type: "error", message: (err as Error).message });
-		} finally {
-			if (sandbox) {
-				await sandbox.stop().catch(() => {});
-			}
-			await writer.close();
 		}
 	};
 
-	runRender();
+	waitUntil(runRender());
 
 	return new Response(stream.readable, {
 		headers: {
