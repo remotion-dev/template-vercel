@@ -26,7 +26,7 @@ export const createDisposableWriter = (
 export async function getRemotionBundleFiles(): Promise<
 	{ path: string; content: Buffer }[]
 > {
-	const remotionDir = path.join(process.cwd(), "remotion");
+	const remotionDir = path.join(process.cwd(), ".remotion");
 	const files: { path: string; content: Buffer }[] = [];
 
 	async function readDirRecursive(dir: string, basePath: string = "") {
@@ -62,10 +62,6 @@ export function generateRenderScript(options: {
 	serveUrl: string;
 	compositionId: string;
 	inputProps: Record<string, unknown>;
-	width: number;
-	height: number;
-	fps: number;
-	durationInFrames: number;
 }): string {
 	return `
 const { renderMedia, selectComposition } = require("@remotion/renderer");
@@ -79,13 +75,7 @@ async function main() {
 		});
 
 		await renderMedia({
-			composition: {
-				...composition,
-				width: ${options.width},
-				height: ${options.height},
-				fps: ${options.fps},
-				durationInFrames: ${options.durationInFrames},
-			},
+			composition,
 			serveUrl: ${JSON.stringify(options.serveUrl)},
 			codec: "h264",
 			outputLocation: "/tmp/video.mp4",
