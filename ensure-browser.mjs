@@ -3155,7 +3155,7 @@ function getChromeDownloadUrl({
       return `https://playwright.azureedge.net/builds/chromium/${version ?? PLAYWRIGHT_VERSION}/chromium-linux-arm64.zip`;
     }
     if (version) {
-      return `https://playwright.azureedge.net/builds/chromium/${version ?? PLAYWRIGHT_VERSION}/chromium-headless-shell-linux-arm64.zip`;
+      return `https://playwright.azureedge.net/builds/chromium/${version}/chromium-headless-shell-linux-arm64.zip`;
     }
     if (canUseRemotionMediaBinaries()) {
       return `https://remotion.media/chromium-headless-shell-linux-arm64-${TESTED_VERSION}.zip?clearcache`;
@@ -3163,6 +3163,9 @@ function getChromeDownloadUrl({
     return `https://playwright.azureedge.net/builds/chromium/${PLAYWRIGHT_VERSION}/chromium-headless-shell-linux-arm64.zip`;
   }
   if (chromeMode === "headless-shell") {
+    if (isAmazonLinux2023() && platform2 === "linux64" && !version) {
+      return `https://remotion.media/chromium-headless-shell-amazon-linux-x64-144.0.7559.20.zip`;
+    }
     if (platform2 === "linux64" && version === null) {
       if (canUseRemotionMediaBinaries()) {
         return `https://remotion.media/chromium-headless-shell-linux-x64-${TESTED_VERSION}.zip?clearcache`;
