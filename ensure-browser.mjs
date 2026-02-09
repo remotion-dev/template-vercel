@@ -3301,6 +3301,16 @@ var downloadBrowser = async ({
   }
   logDownloadUrl({ url: downloadURL, logLevel, indent });
   try {
+    let logFileTree = function(dir, prefix = "") {
+      const items = fs4.readdirSync(dir, { withFileTypes: true });
+      for (const item of items) {
+        const isDir = item.isDirectory();
+        console.log(`${prefix}${isDir ? "\uD83D\uDCC1" : "\uD83D\uDCC4"} ${item.name}`);
+        if (isDir) {
+          logFileTree(path3.join(dir, item.name), prefix + "  ");
+        }
+      }
+    };
     await downloadFile({
       url: downloadURL,
       to: () => archivePath,
@@ -3320,6 +3330,10 @@ var downloadBrowser = async ({
       abortSignal: new AbortController().signal
     });
     await import_extract_zip.default(archivePath, { dir: outputPath });
+    console.log(archivePath);
+    console.log(downloadURL);
+    console.log(`Extracted zip file structure for ${outputPath}:`);
+    logFileTree(outputPath);
     const possibleSubdirs = [
       "chrome-linux",
       "chrome-headless-shell-linux64",
