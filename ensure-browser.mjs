@@ -3385,7 +3385,7 @@ var getExecutablePath = (chromeMode) => {
     throw new Error("unsupported platform" + platform3);
   }
   if (chromeMode === "headless-shell") {
-    return path3.join(folderPath, `chrome-headless-shell-${platform3}`, platform3 === "win64" ? "chrome-headless-shell.exe" : platform3 === "linux-arm64" ? "headless_shell" : "chrome-headless-shell");
+    return path3.join(folderPath, `chrome-headless-shell-${platform3}`, platform3 === "win64" ? "chrome-headless-shell.exe" : platform3 === "linux-arm64" || isAmazonLinux2023() ? "headless_shell" : "chrome-headless-shell");
   }
   throw new Error("unsupported chrome mode" + chromeMode);
 };
