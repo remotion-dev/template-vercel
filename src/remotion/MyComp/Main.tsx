@@ -9,7 +9,10 @@ loadFont("normal", {
 export const Main = () => {
 	return (
 		<AbsoluteFill className="bg-white">
-			<Video src={"https://remotion.media/video.mp4"} />
+			<Video
+				src={"https://remotion.media/video.mp4"}
+				disallowFallbackToOffthreadVideo
+			/>
 		</AbsoluteFill>
 	);
 };
