@@ -11,6 +11,7 @@ import { NextLogo } from "./NextLogo";
 import { loadFont, fontFamily } from "@remotion/google-fonts/Inter";
 import { Rings } from "./Rings";
 import { TextFade } from "./TextFade";
+import { Video } from "@remotion/media";
 
 loadFont("normal", {
 	subsets: ["latin"],
@@ -35,24 +36,7 @@ export const Main = ({ title }: z.infer<typeof CompositionProps>) => {
 
 	return (
 		<AbsoluteFill className="bg-white">
-			<Sequence durationInFrames={transitionStart + transitionDuration}>
-				<Rings outProgress={logoOut}></Rings>
-				<AbsoluteFill className="justify-center items-center">
-					<NextLogo outProgress={logoOut}></NextLogo>
-				</AbsoluteFill>
-			</Sequence>
-			<Sequence from={transitionStart + transitionDuration / 2}>
-				<TextFade>
-					<h1
-						className="text-[70px] font-bold"
-						style={{
-							fontFamily,
-						}}
-					>
-						{title}
-					</h1>
-				</TextFade>
-			</Sequence>
+			<Video src={"https://remotion.media/video.mp4"} />
 		</AbsoluteFill>
 	);
 };
