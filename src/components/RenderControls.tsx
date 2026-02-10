@@ -9,7 +9,6 @@ import { ProgressBar } from "./ProgressBar";
 import { Spacing } from "./Spacing";
 import { COMP_NAME, CompositionProps } from "../../types/constants";
 import { useRendering } from "../helpers/use-rendering";
-import { LogViewer } from "./LogViewer";
 
 export const RenderControls: React.FC<{
 	text: string;
@@ -42,24 +41,22 @@ export const RenderControls: React.FC<{
 					{state.status === "invoking" ? (
 						<>
 							<Spacing></Spacing>
-							<div style={{ fontSize: 14, color: "#666", marginBottom: 8 }}>
-								{state.phase}
-								{state.progress > 0
-									? ` (${Math.round(state.progress * 100)}%)`
-									: null}
+							<div style={{ fontSize: 14, lineHeight: 1.5, minHeight: "2.5em", marginBottom: 8 }}>
+								<div style={{ color: "#666" }}>
+									{state.phase}
+									{state.progress > 0 && state.progress < 1
+										? ` ${Math.round(state.progress * 100)}%`
+										: null}
+								</div>
+								<div style={{ color: "#999", fontSize: 12, visibility: state.subtitle ? "visible" : "hidden" }}>
+									{state.subtitle ?? "\u00A0"}
+								</div>
 							</div>
 							<ProgressBar progress={state.progress} />
-							{state.phase !== "Preparing machine..." &&
-								state.phase !== "Creating sandbox..." && (
-									<LogViewer logs={state.logs} />
-								)}
 						</>
 					) : null}
 					{state.status === "error" ? (
-						<>
-							<LogViewer logs={state.logs} />
-							<ErrorComp message={state.error.message}></ErrorComp>
-						</>
+						<ErrorComp message={state.error.message}></ErrorComp>
 					) : null}
 				</>
 			) : null}
