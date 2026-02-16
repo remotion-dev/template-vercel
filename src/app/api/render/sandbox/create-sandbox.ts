@@ -99,7 +99,7 @@ export async function createSandbox({
     },
     {
       path: "package.json",
-      content: JSON.stringify({ type: "module" }),
+      content: Buffer.from(JSON.stringify({ type: "module" })),
     },
   ]);
 
