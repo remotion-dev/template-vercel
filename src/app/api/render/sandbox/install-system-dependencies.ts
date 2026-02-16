@@ -25,6 +25,9 @@ export async function installSystemDependencies({
       "alsa-lib",
       "pango",
       "gtk3",
+      "patchelf",
+      "zstd",
+      "binutils",
     ],
     detached: true,
   });

@@ -8,6 +8,7 @@ import { addBundleToSandbox } from "./add-bundle";
 import { installSystemDependencies } from "./install-system-dependencies";
 import { installJsDependencies } from "./install-js-dependencies";
 import { installBrowser } from "./install-browser";
+import { patchCompositor } from "./patch-compositor";
 
 export async function createSandbox({
   onProgress,
@@ -72,6 +73,9 @@ export async function createSandbox({
 
   // Install renderer and blob SDK
   await installJsDependencies({ sandbox });
+
+  // Patch compositor binary for glibc 2.34 compatibility (Amazon Linux 2023)
+  await patchCompositor({ sandbox });
 
   // Stage 3: Download browser (20%)
   await installBrowser({
