@@ -5,7 +5,7 @@ const LIBC6_DEB_URL =
   "http://launchpadlibrarian.net/612471225/libc6_2.35-0ubuntu3.1_amd64.deb";
 
 /**
- * Patches the Remotion compositor binary to use a bundled glibc 2.35.
+ * Remotion does not officially support glibc 2.34, but it can be patched.
  *
  * Vercel Sandbox runs Amazon Linux 2023 which ships glibc 2.34,
  * but the compositor binary requires glibc 2.35.

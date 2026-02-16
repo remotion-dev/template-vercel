@@ -97,6 +97,10 @@ export async function createSandbox({
       path: "render.ts",
       content: renderScript,
     },
+    {
+      path: "package.json",
+      content: JSON.stringify({ type: "module" }),
+    },
   ]);
 
   return sandbox;
