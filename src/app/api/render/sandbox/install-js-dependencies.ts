@@ -8,7 +8,12 @@ export async function installJsDependencies({
 }): Promise<void> {
   const installCmd = await sandbox.runCommand({
     cmd: "pnpm",
-    args: [`i`, `@remotion/renderer@${VERSION}`, `@vercel/blob`],
+    args: [
+      `i`,
+      `@remotion/renderer@${VERSION}`,
+      `@remotion/compositor-linux-x64-gnu@${VERSION}`,
+      `@vercel/blob`,
+    ],
     detached: true,
   });
 

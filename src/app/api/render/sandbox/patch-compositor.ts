@@ -22,7 +22,13 @@ export async function patchCompositor({
   const script = `
 set -euo pipefail
 
-COMPOSITOR_BIN="$(find node_modules/@remotion/compositor-linux-x64-gnu -name remotion -type f | head -1)"
+COMPOSITOR_BIN=""
+for dir in node_modules/@remotion/compositor-linux-x64-gnu node_modules/@remotion/compositor-linux-x64-musl; do
+  if [ -d "$dir" ]; then
+    COMPOSITOR_BIN="$(find "$dir" -name remotion -type f | head -1)"
+    [ -n "$COMPOSITOR_BIN" ] && break
+  fi
+done
 
 if [ -z "$COMPOSITOR_BIN" ]; then
   echo "Compositor binary not found, skipping patch"
