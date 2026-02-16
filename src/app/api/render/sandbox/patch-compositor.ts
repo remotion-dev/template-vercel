@@ -29,7 +29,7 @@ echo "[patch-compositor] Checking .pnpm store for compositor packages:"
 ls -la node_modules/.pnpm/@remotion+compositor-linux* 2>&1 || echo "(none found in .pnpm)"
 
 echo "[patch-compositor] Checking for compositor directories..."
-for dir in node_modules/@remotion/compositor-linux-x64-gnu node_modules/@remotion/compositor-linux-x64-musl; do
+for dir in node_modules/@remotion/compositor-linux-x64-gnu; do
   if [ -e "$dir" ]; then
     echo "[patch-compositor] Found: $dir ($(stat -c '%F' "$dir" 2>/dev/null || file "$dir"))"
     if [ -L "$dir" ]; then
@@ -44,7 +44,7 @@ done
 
 COMPOSITOR_BIN=""
 # Search with -L to follow pnpm symlinks
-for dir in node_modules/@remotion/compositor-linux-x64-gnu node_modules/@remotion/compositor-linux-x64-musl; do
+for dir in node_modules/@remotion/compositor-linux-x64-gnu; do
   if [ -e "$dir" ]; then
     COMPOSITOR_BIN="$(find -L "$dir" -name remotion -type f | head -1)"
     [ -n "$COMPOSITOR_BIN" ] && break
