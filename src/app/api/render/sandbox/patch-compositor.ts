@@ -1,6 +1,6 @@
 import { Sandbox } from "@vercel/sandbox";
 
-const GLIBC_DIR = "/opt/glibc235";
+const GLIBC_DIR = "/tmp/glibc235";
 const LIBC6_DEB_URL =
   "http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc6_2.35-0ubuntu3.9_amd64.deb";
 
