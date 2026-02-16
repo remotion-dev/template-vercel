@@ -17,9 +17,8 @@ export async function installJsDependencies({
     detached: true,
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   for await (const _log of installCmd.logs()) {
-    // Consume logs without displaying
+    console.log(_log.data);
   }
 
   const installResult = await installCmd.wait();
