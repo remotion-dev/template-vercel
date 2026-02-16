@@ -69,9 +69,8 @@ echo "Compositor patched successfully"
     detached: true,
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   for await (const _log of cmd.logs()) {
-    // Consume logs
+    console.log(_log.data);
   }
 
   const result = await cmd.wait();
