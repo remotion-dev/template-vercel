@@ -25,24 +25,37 @@ set -euo pipefail
 echo "[patch-compositor] Listing node_modules/@remotion/:"
 ls -la node_modules/@remotion/ 2>&1 || echo "(directory does not exist)"
 
+echo "[patch-compositor] Checking .pnpm store for compositor packages:"
+ls -la node_modules/.pnpm/@remotion+compositor-linux* 2>&1 || echo "(none found in .pnpm)"
+
 echo "[patch-compositor] Checking for compositor directories..."
 for dir in node_modules/@remotion/compositor-linux-x64-gnu node_modules/@remotion/compositor-linux-x64-musl; do
-  if [ -d "$dir" ]; then
-    echo "[patch-compositor] Found directory: $dir"
+  if [ -e "$dir" ]; then
+    echo "[patch-compositor] Found: $dir ($(stat -c '%F' "$dir" 2>/dev/null || file "$dir"))"
+    if [ -L "$dir" ]; then
+      echo "[patch-compositor] Symlink target: $(readlink -f "$dir")"
+    fi
     echo "[patch-compositor] Contents:"
-    find "$dir" -type f 2>&1 || true
+    find -L "$dir" -type f 2>&1 || true
   else
     echo "[patch-compositor] Not found: $dir"
   fi
 done
 
 COMPOSITOR_BIN=""
+# Search with -L to follow pnpm symlinks
 for dir in node_modules/@remotion/compositor-linux-x64-gnu node_modules/@remotion/compositor-linux-x64-musl; do
-  if [ -d "$dir" ]; then
-    COMPOSITOR_BIN="$(find "$dir" -name remotion -type f | head -1)"
+  if [ -e "$dir" ]; then
+    COMPOSITOR_BIN="$(find -L "$dir" -name remotion -type f | head -1)"
     [ -n "$COMPOSITOR_BIN" ] && break
   fi
 done
+
+# Fallback: search the pnpm store directly
+if [ -z "$COMPOSITOR_BIN" ]; then
+  echo "[patch-compositor] Trying pnpm store fallback..."
+  COMPOSITOR_BIN="$(find -L node_modules/.pnpm -path '*compositor-linux-x64*' -name remotion -type f 2>/dev/null | head -1)"
+fi
 
 if [ -z "$COMPOSITOR_BIN" ]; then
   echo "[patch-compositor] ERROR: Compositor binary not found"
