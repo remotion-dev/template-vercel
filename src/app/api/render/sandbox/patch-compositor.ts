@@ -2,7 +2,7 @@ import { Sandbox } from "@vercel/sandbox";
 
 const GLIBC_DIR = "/tmp/glibc235";
 const LIBC6_DEB_URL =
-  "http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc6_2.35-0ubuntu3.9_amd64.deb";
+  "http://launchpadlibrarian.net/612471225/libc6_2.35-0ubuntu3.1_amd64.deb";
 
 /**
  * Patches the Remotion compositor binary to use a bundled glibc 2.35.
