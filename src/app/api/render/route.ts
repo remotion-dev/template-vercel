@@ -25,6 +25,8 @@ export async function POST(req: Request) {
       const payload = await req.json();
       const body = RenderRequest.parse(payload);
 
+      const restoringPhase = "Restoring sandbox...";
+      await send({ type: "phase", phase: restoringPhase, progress: 0 });
       await using sandbox = await reuseOrCreateSandbox(send);
       const renderingPhase = "Rendering video...";
       await send({ type: "phase", phase: renderingPhase, progress: 0 });
