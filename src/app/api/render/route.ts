@@ -5,8 +5,8 @@ import {
   formatSSE,
   type RenderProgress,
 } from "./helpers";
-import { reuseOrCreateSandbox } from "./sandbox/reuse-or-create-sandbox";
 import { renderInSandbox } from "./render";
+import { reuseOrCreateSandbox } from "./sandbox/reuse-or-create-sandbox";
 
 export async function POST(req: Request) {
   const encoder = new TextEncoder();

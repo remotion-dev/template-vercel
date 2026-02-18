@@ -1,7 +1,7 @@
 import { Sandbox } from "@vercel/sandbox";
-import { COMP_NAME } from "../../../../types/constants";
 import { BUILD_DIR } from "../../../../build-dir.mjs";
 import type { RenderConfig } from "../../../../render";
+import { COMP_NAME } from "../../../../types/constants";
 
 export type RenderInSandboxProgress =
   | { type: "render-progress"; progress: number }
