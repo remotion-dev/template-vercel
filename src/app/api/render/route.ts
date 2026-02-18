@@ -25,29 +25,46 @@ export async function POST(req: Request) {
       const payload = await req.json();
       const body = RenderRequest.parse(payload);
 
-      const restoringPhase = "Restoring sandbox...";
-      await send({ type: "phase", phase: restoringPhase, progress: 0 });
       await using sandbox = await reuseOrCreateSandbox(send);
-      const renderingPhase = "Rendering video...";
-      await send({ type: "phase", phase: renderingPhase, progress: 0 });
       await renderInSandbox({
         sandbox,
         inputProps: body.inputProps,
         onProgress: async (update) => {
-          if (update.type === "render-progress") {
-            await send({
-              type: "phase",
-              phase: renderingPhase,
-              progress: update.progress,
-            });
-          } else if (update.type === "uploading") {
-            await send({
-              type: "phase",
-              phase: "Uploading video...",
-              progress: 1,
-            });
-          } else if (update.type === "done") {
-            await send({ type: "done", url: update.url, size: update.size });
+          switch (update.type) {
+            case "opening-browser":
+              await send({
+                type: "phase",
+                phase: "Opening browser...",
+                progress: 0,
+              });
+              break;
+            case "selecting-composition":
+              await send({
+                type: "phase",
+                phase: "Selecting composition...",
+                progress: 0,
+              });
+              break;
+            case "render-progress":
+              await send({
+                type: "phase",
+                phase: "Rendering video...",
+                progress: update.progress,
+              });
+              break;
+            case "uploading":
+              await send({
+                type: "phase",
+                phase: "Uploading video...",
+                progress: 1,
+              });
+              break;
+            case "done":
+              await send({ type: "done", url: update.url, size: update.size });
+              break;
+            default:
+              update satisfies never;
+              break;
           }
         },
       });
