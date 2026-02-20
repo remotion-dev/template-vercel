@@ -1,77 +1,109 @@
-import { waitUntil } from "@vercel/functions";
-import { RenderRequest } from "../../../../types/schema";
 import {
-  createDisposableWriter,
-  formatSSE,
-  type RenderProgress,
-} from "./helpers";
-import { renderInSandbox } from "./render";
-import { reuseOrCreateSandbox } from "./sandbox/reuse-or-create-sandbox";
+  addBundleToSandbox,
+  createSandbox,
+  renderMediaOnVercel,
+  uploadToVercelBlob,
+} from "@remotion/vercel";
+import { waitUntil } from "@vercel/functions";
+import { COMP_NAME } from "../../../../types/constants";
+import { RenderRequest } from "../../../../types/schema";
+import { bundleRemotionProject, formatSSE, type RenderProgress } from "./helpers";
+import { restoreSnapshot } from "./restore-snapshot";
 
 export async function POST(req: Request) {
   const encoder = new TextEncoder();
   const stream = new TransformStream();
   const writer = stream.writable.getWriter();
 
+  const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+  if (!blobToken) {
+    throw new Error(
+      'BLOB_READ_WRITE_TOKEN is not set. To fix this, go to vercel.com, log in, select Storage, click "Create Database", select "Blob", link it to your project, then add BLOB_READ_WRITE_TOKEN to your .env file.',
+    );
+  }
+
+  const payload = await req.json();
+  const body = RenderRequest.parse(payload);
+
   const send = async (message: RenderProgress) => {
     await writer.write(encoder.encode(formatSSE(message)));
   };
 
   const runRender = async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    await using _writer = createDisposableWriter(writer);
+    await send({ type: "phase", phase: "Creating sandbox...", progress: 0 });
+    const sandbox = process.env.VERCEL
+      ? await restoreSnapshot()
+      : await createSandbox({
+          onProgress: async ({ progress, message }) => {
+            await send({
+              type: "phase",
+              phase: message,
+              progress,
+              subtitle: "This is only needed during development.",
+            });
+          },
+        });
 
     try {
-      const payload = await req.json();
-      const body = RenderRequest.parse(payload);
+      if (!process.env.VERCEL) {
+        bundleRemotionProject(".remotion");
+        await addBundleToSandbox({ sandbox, bundleDir: ".remotion" });
+      }
 
-      await send({ type: "phase", phase: "Creating sandbox...", progress: 0 });
-      await using sandbox = await reuseOrCreateSandbox(send);
-      await renderInSandbox({
+      const { sandboxFilePath, contentType } = await renderMediaOnVercel({
         sandbox,
+        compositionId: COMP_NAME,
         inputProps: body.inputProps,
         onProgress: async (update) => {
-          switch (update.type) {
+          switch (update.stage) {
             case "opening-browser":
               await send({
                 type: "phase",
                 phase: "Opening browser...",
-                progress: 0,
+                progress: update.overallProgress,
               });
               break;
             case "selecting-composition":
               await send({
                 type: "phase",
                 phase: "Selecting composition...",
-                progress: 0,
+                progress: update.overallProgress,
               });
               break;
             case "render-progress":
               await send({
                 type: "phase",
                 phase: "Rendering video...",
-                progress: update.progress,
+                progress: update.overallProgress,
               });
-              break;
-            case "uploading":
-              await send({
-                type: "phase",
-                phase: "Uploading video...",
-                progress: 1,
-              });
-              break;
-            case "done":
-              await send({ type: "done", url: update.url, size: update.size });
               break;
             default:
-              update satisfies never;
               break;
           }
         },
       });
+
+      await send({
+        type: "phase",
+        phase: "Uploading video...",
+        progress: 1,
+      });
+
+      const { url, size } = await uploadToVercelBlob({
+        sandbox,
+        sandboxFilePath,
+        contentType,
+        blobToken,
+        access: "public",
+      });
+
+      await send({ type: "done", url, size });
     } catch (err) {
       console.log(err);
       await send({ type: "error", message: (err as Error).message });
+    } finally {
+      await sandbox?.stop().catch(() => {});
+      await writer.close();
     }
   };
 

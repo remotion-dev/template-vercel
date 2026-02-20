@@ -1,27 +1,16 @@
-import { Sandbox } from "@vercel/sandbox";
-import { readFile } from "fs/promises";
-import path from "path";
+import { execSync } from "child_process";
 
-export const createDisposableSandbox = async (
-  options: Parameters<typeof Sandbox.create>[0],
-): Promise<Sandbox & AsyncDisposable> => {
-  const sandbox = await Sandbox.create(options);
-  return Object.assign(sandbox, {
-    [Symbol.asyncDispose]: async () => {
-      await sandbox.stop().catch(() => {});
-    },
-  });
-};
-
-export const createDisposableWriter = (
-  writer: WritableStreamDefaultWriter<Uint8Array>,
-): WritableStreamDefaultWriter<Uint8Array> & AsyncDisposable => {
-  return Object.assign(writer, {
-    [Symbol.asyncDispose]: async () => {
-      await writer.close();
-    },
-  });
-};
+export function bundleRemotionProject(bundleDir: string): void {
+  try {
+    execSync(`node_modules/.bin/remotion bundle --out-dir ./${bundleDir}`, {
+      cwd: process.cwd(),
+      stdio: "inherit",
+    });
+  } catch (e) {
+    const stderr = (e as { stderr?: Buffer }).stderr?.toString() ?? "";
+    throw new Error(`Remotion bundle failed: ${stderr}`);
+  }
+}
 
 export type RenderProgress =
   | { type: "phase"; phase: string; progress: number; subtitle?: string }
@@ -32,9 +21,4 @@ export type OnProgressFn = (message: RenderProgress) => Promise<void>;
 
 export function formatSSE(message: RenderProgress): string {
   return `data: ${JSON.stringify(message)}\n\n`;
-}
-
-export async function getRenderScript(): Promise<Buffer> {
-  const renderScriptPath = path.join(process.cwd(), "render.ts");
-  return readFile(renderScriptPath);
 }
