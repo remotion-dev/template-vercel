@@ -1,4 +1,4 @@
-import { head } from "@vercel/blob";
+import { get } from "@vercel/blob";
 import { Sandbox } from "@vercel/sandbox";
 
 const SANDBOX_CREATING_TIMEOUT = 5 * 60 * 1000;
@@ -7,18 +7,19 @@ const getSnapshotBlobKey = () =>
   `snapshot-cache/${process.env.VERCEL_DEPLOYMENT_ID ?? "local"}.json`;
 
 export async function restoreSnapshot() {
-  let snapshotId: string | null = null;
-
-  try {
-    const metadata = await head(getSnapshotBlobKey(), {
-      token: process.env.BLOB_READ_WRITE_TOKEN,
-    });
-    const response = await fetch(metadata.url);
-    const cache: { snapshotId: string } = await response.json();
-    snapshotId = cache.snapshotId;
-  } catch {
-    // ignore
+  const blob = await get(getSnapshotBlobKey(), {
+    access: "private",
+    token: process.env.BLOB_READ_WRITE_TOKEN,
+  });
+  if (!blob) {
+    throw new Error(
+      "No sandbox snapshot found. Run `bun run create-snapshot` as part of the build process.",
+    );
   }
+
+  const response = new Response(blob.stream);
+  const cache: { snapshotId: string } = await response.json();
+  const snapshotId = cache.snapshotId;
 
   if (!snapshotId) {
     throw new Error(
