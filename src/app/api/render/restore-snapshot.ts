@@ -10,7 +10,9 @@ export async function restoreSnapshot() {
   let snapshotId: string | null = null;
 
   try {
-    const metadata = await head(getSnapshotBlobKey());
+    const metadata = await head(getSnapshotBlobKey(), {
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+    });
     const response = await fetch(metadata.url);
     const cache: { snapshotId: string } = await response.json();
     snapshotId = cache.snapshotId;
