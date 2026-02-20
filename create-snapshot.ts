@@ -21,7 +21,7 @@ const snapshot = await sandbox.snapshot({ expiration: 0 });
 const { snapshotId } = snapshot;
 
 await put(getSnapshotBlobKey(), JSON.stringify({ snapshotId }), {
-  access: "public",
+  access: "private",
   contentType: "application/json",
   addRandomSuffix: false,
 });
