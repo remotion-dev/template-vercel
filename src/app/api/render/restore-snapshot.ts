@@ -8,7 +8,7 @@ const getSnapshotBlobKey = () =>
 
 export async function restoreSnapshot() {
   const blob = await get(getSnapshotBlobKey(), {
-    access: "private",
+    access: "public",
     token: process.env.BLOB_READ_WRITE_TOKEN,
   });
   if (!blob) {

@@ -7,7 +7,11 @@ import {
 import { waitUntil } from "@vercel/functions";
 import { COMP_NAME } from "../../../../types/constants";
 import { RenderRequest } from "../../../../types/schema";
-import { bundleRemotionProject, formatSSE, type RenderProgress } from "./helpers";
+import {
+  bundleRemotionProject,
+  formatSSE,
+  type RenderProgress,
+} from "./helpers";
 import { restoreSnapshot } from "./restore-snapshot";
 
 export async function POST(req: Request) {
